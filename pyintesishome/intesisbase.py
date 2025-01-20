@@ -105,11 +105,11 @@ class IntesisBase:
                 _LOGGER.debug("Received: %s", data)
 
                 await self._parse_response(data)
-                
+
                 if not self._received_response.is_set():
                     _LOGGER.debug("Resolving set_value's await")
                     self._received_response.set()
-                    
+
 
         except IncompleteReadError:
             _LOGGER.debug(
@@ -244,12 +244,14 @@ class IntesisBase:
 
     async def set_vertical_vane(self, device_id, vane: str):
         """Public method to set the vertical vane"""
+        _LOGGER.debug(f"set_vertical_vane: device_id {device_id}, vane: {vane}")
         await self._set_value(
             device_id, COMMAND_MAP["vvane"]["uid"], COMMAND_MAP["vvane"]["values"][vane]
         )
 
     async def set_horizontal_vane(self, device_id, vane: str):
         """Public method to set the horizontal vane"""
+        _LOGGER.debug(f"set_horizontal_vane: device_id {device_id}, vane: {vane}")
         await self._set_value(
             device_id, COMMAND_MAP["hvane"]["uid"], COMMAND_MAP["hvane"]["values"][vane]
         )
@@ -315,7 +317,7 @@ class IntesisBase:
                 mode_list.append(mode_bits.get(mode_bit))
 
         return mode_list
-    
+
     def get_vertical_swing_list(self, device_id) -> list:
         """Public method to return the list of device modes."""
         swingmode_list = []
@@ -328,9 +330,9 @@ class IntesisBase:
         for swingmode_bit in swingmode_bits:
             if config_vertical_vanes & swingmode_bit:
                 swingmode_list.append(swingmode_bits.get(swingmode_bit))
-        
+
         return swingmode_list
-    
+
     def get_horizontal_swing_list(self, device_id) -> list:
         """Public method to return the list of device modes."""
         horizontal_swingmode_list = []
@@ -343,7 +345,7 @@ class IntesisBase:
         for horizontal_swingmode_bit in horizontal_swingmode_bits:
             if config_horizontal_vanes & horizontal_swingmode_bit:
                 horizontal_swingmode_list.append(horizontal_swingmode_bits.get(horizontal_swingmode_bit))
-        
+
         return horizontal_swingmode_list
 
     def get_fan_speed(self, device_id):

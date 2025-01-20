@@ -80,6 +80,7 @@ class IntesisHomeLocal(IntesisBase):
 
     async def _authenticate(self) -> bool:
         """Authenticate using username and password."""
+        _LOGGER.debug("Authenticating with %s", self._host)
         payload = {
             "command": LOCAL_CMD_LOGIN,
             "data": {"username": self._username, "password": self._password},
@@ -157,6 +158,13 @@ class IntesisHomeLocal(IntesisBase):
                     exc,
                 )
 
+            _LOGGER.debug(
+                "Received intesishome_local response for command %s to %s:\n%r",
+                command,
+                self._host,
+                json_response,
+            )
+
             # If the response has a non-false "success", return the data.
             #
             # If the key doesn't exist, treat it as "false" and continue with
@@ -197,12 +205,14 @@ class IntesisHomeLocal(IntesisBase):
 
     async def _request_value(self, name: str) -> dict:
         """Get entity value by uid."""
+        _LOGGER.debug(f"_request_value: device_id: {self._device_id}, name: {name}")
         response = await self._request(
             LOCAL_CMD_GET_DP_VALUE, uid=COMMAND_MAP[name]["uid"]
         )
         return response["dpval"]["value"]
 
     async def _set_value(self, device_id, uid, value):
+        _LOGGER.debug(f"_set_value: device_id: {device_id}, uid: {uid}, value: {value}")
         return await self._request(
             LOCAL_CMD_SET_DP_VALUE,
             uid=uid,
@@ -309,8 +319,9 @@ class IntesisHomeLocal(IntesisBase):
 
     def has_vertical_swing(self, device_id) -> bool:
         """Entity supports vertical swing."""
+        _LOGGER.debug(f"has_vertical_swing: device_id: {device_id}: True")
         return self._has_datapoint("vvane")
-    
+
     def get_horizontal_swing_list(self, device_id) -> list:
         """Get possible entity modes."""
         uid = COMMAND_MAP["vvane"]["uid"]
@@ -321,6 +332,7 @@ class IntesisHomeLocal(IntesisBase):
 
     def has_horizontal_swing(self, device_id) -> bool:
         """Entity supports horizontal swing."""
+        _LOGGER.debug(f"has_horizontal_swing: device_id: {device_id}: True")
         return self._has_datapoint("hvane")
 
     async def _parse_response(self, decoded_data):
