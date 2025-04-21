@@ -1,4 +1,5 @@
 """Base class for Intesis controllers."""
+
 import asyncio
 import logging
 from asyncio.exceptions import IncompleteReadError
@@ -70,7 +71,7 @@ class IntesisBase:
             self._web_session = aiohttp.ClientSession()
             self._own_session = True
 
-    async def _set_value(self, device_id, uid, value):
+    async def _set_value(self, uid, value):
         """Internal method to send a value to the device."""
         raise NotImplementedError()
 
@@ -109,7 +110,6 @@ class IntesisBase:
                 if not self._received_response.is_set():
                     _LOGGER.debug("Resolving set_value's await")
                     self._received_response.set()
-
 
         except IncompleteReadError:
             _LOGGER.debug(
@@ -215,7 +215,6 @@ class IntesisBase:
 
         if mode in COMMAND_MAP[mode_control]["values"]:
             await self._set_value(
-                device_id,
                 COMMAND_MAP[mode_control]["uid"],
                 COMMAND_MAP[mode_control]["values"][mode],
             )
@@ -224,7 +223,6 @@ class IntesisBase:
         """Internal method for setting the mode with a string value."""
         if preset in COMMAND_MAP["climate_working_mode"]["values"]:
             await self._set_value(
-                device_id,
                 COMMAND_MAP["climate_working_mode"]["uid"],
                 COMMAND_MAP["climate_working_mode"]["values"][preset],
             )
@@ -232,62 +230,61 @@ class IntesisBase:
     async def set_temperature(self, device_id, setpoint):
         """Public method for setting the temperature"""
         set_temp = uint32(setpoint * 10)
-        await self._set_value(device_id, COMMAND_MAP["setpoint"]["uid"], set_temp)
+        await self._set_value(COMMAND_MAP["setpoint"]["uid"], set_temp)
 
     async def set_fan_speed(self, device_id, fan: str):
         """Public method to set the fan speed"""
         fan_map = self._get_fan_map(device_id)
         map_fan_speed_to_int = {v: k for k, v in fan_map.items()}
         await self._set_value(
-            device_id, COMMAND_MAP["fan_speed"]["uid"], map_fan_speed_to_int[fan]
+            COMMAND_MAP["fan_speed"]["uid"], map_fan_speed_to_int[fan]
         )
 
     async def set_vertical_vane(self, device_id, vane: str):
         """Public method to set the vertical vane"""
         _LOGGER.debug(f"set_vertical_vane: device_id {device_id}, vane: {vane}")
         await self._set_value(
-            device_id, COMMAND_MAP["vvane"]["uid"], COMMAND_MAP["vvane"]["values"][vane]
+            COMMAND_MAP["vvane"]["uid"], COMMAND_MAP["vvane"]["values"][vane]
         )
 
     async def set_horizontal_vane(self, device_id, vane: str):
         """Public method to set the horizontal vane"""
         _LOGGER.debug(f"set_horizontal_vane: device_id {device_id}, vane: {vane}")
         await self._set_value(
-            device_id, COMMAND_MAP["hvane"]["uid"], COMMAND_MAP["hvane"]["values"][vane]
+            COMMAND_MAP["hvane"]["uid"], COMMAND_MAP["hvane"]["values"][vane]
         )
 
-    async def set_mode_heat(self, device_id):
+    async def set_mode_heat(self):
         """Public method to set device to heat asynchronously."""
-        await self.set_mode(device_id, "heat")
+        await self.set_mode("heat")
 
-    async def set_mode_cool(self, device_id):
+    async def set_mode_cool(self):
         """Public method to set device to cool asynchronously."""
-        await self.set_mode(device_id, "cool")
+        await self.set_mode("cool")
 
-    async def set_mode_fan(self, device_id):
+    async def set_mode_fan(self):
         """Public method to set device to fan asynchronously."""
-        await self.set_mode(device_id, "fan")
+        await self.set_mode("fan")
 
-    async def set_mode_auto(self, device_id):
+    async def set_mode_auto(self):
         """Public method to set device to auto asynchronously."""
-        await self.set_mode(device_id, "auto")
+        await self.set_mode("auto")
 
-    async def set_mode_dry(self, device_id):
+    async def set_mode_dry(self):
         """Public method to set device to dry asynchronously."""
-        await self.set_mode(device_id, "dry")
+        await self.set_mode("dry")
 
-    async def set_power_off(self, device_id):
+    async def set_power_off(self):
         """Public method to turn off the device asynchronously."""
         await self._set_value(
-            device_id,
             COMMAND_MAP["power"]["uid"],
             COMMAND_MAP["power"]["values"]["off"],
         )
 
-    async def set_power_on(self, device_id):
+    async def set_power_on(self):
         """Public method to turn on the device asynchronously."""
         await self._set_value(
-            device_id, COMMAND_MAP["power"]["uid"], COMMAND_MAP["power"]["values"]["on"]
+            COMMAND_MAP["power"]["uid"], COMMAND_MAP["power"]["values"]["on"]
         )
 
     def get_mode(self, device_id) -> str:
@@ -323,7 +320,9 @@ class IntesisBase:
         swingmode_list = []
 
         # By default, use config_mode_map to determine the available modes
-        config_vertical_vanes = self.get_device_property(device_id, "config_vertical_vanes")
+        config_vertical_vanes = self.get_device_property(
+            device_id, "config_vertical_vanes"
+        )
         swingmode_bits = SWINGMODE_BITS
 
         # Generate the mode list from the map
@@ -338,13 +337,17 @@ class IntesisBase:
         horizontal_swingmode_list = []
 
         # By default, use config_mode_map to determine the available modes
-        config_horizontal_vanes = self.get_device_property(device_id, "config_horizontal_vanes")
+        config_horizontal_vanes = self.get_device_property(
+            device_id, "config_horizontal_vanes"
+        )
         horizontal_swingmode_bits = SWINGMODE_BITS
 
         # Generate the mode list from the map
         for horizontal_swingmode_bit in horizontal_swingmode_bits:
             if config_horizontal_vanes & horizontal_swingmode_bit:
-                horizontal_swingmode_list.append(horizontal_swingmode_bits.get(horizontal_swingmode_bit))
+                horizontal_swingmode_list.append(
+                    horizontal_swingmode_bits.get(horizontal_swingmode_bit)
+                )
 
         return horizontal_swingmode_list
 
@@ -516,7 +519,6 @@ class IntesisBase:
         {operating_mode, climate_working_mode, tank, etc.}) with a string value"""
         if mode in COMMAND_MAP[gen_type]["values"]:
             self._set_value(
-                device_id,
                 COMMAND_MAP[gen_type]["uid"],
                 COMMAND_MAP[gen_type]["values"][mode],
             )
@@ -528,7 +530,7 @@ class IntesisBase:
 
         if min_shift <= value <= max_shift:
             unsigned_value = uint32(value * 10)  # unsigned int 16 bit
-            self._set_value(device_id, COMMAND_MAP[name]["uid"], unsigned_value)
+            self._set_value(COMMAND_MAP[name]["uid"], unsigned_value)
         else:
             raise ValueError(
                 f"Value for {name} has to be in range [{min_shift}],{max_shift}]"

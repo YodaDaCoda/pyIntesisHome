@@ -1,4 +1,5 @@
-""" Main submodule for pyintesishome """
+"""Main submodule for pyintesishome"""
+
 import asyncio
 import json
 import logging
@@ -213,11 +214,11 @@ class IntesisHome(IntesisBase):
         return self._auth_token
 
     # pylint: disable=C0209
-    async def _set_value(self, device_id, uid, value):
+    async def _set_value(self, uid, value):
         """Internal method to send a command to the API (and connect if necessary)"""
-        message = (
-            '{"command":"set","data":{"deviceId":%s,"uid":%i,"value":%i,"seqNo":0}}'
-            % (device_id, uid, value)
+        message = '{"command":"set","data":{"uid":%i,"value":%i,"seqNo":0}}' % (
+            uid,
+            value,
         )
         await self._send_command(message)
 

@@ -1,4 +1,5 @@
 """IntesisBox class."""
+
 import asyncio
 import logging
 from typing import List
@@ -153,7 +154,7 @@ class IntesisBox(IntesisBase):
     async def set_mode(self, device_id, mode: str):
         """Internal method for setting the mode with a string value."""
         if mode in INTESISBOX_MODE_MAP:
-            await self._set_value(device_id, "MODE", INTESISBOX_MODE_MAP[mode])
+            await self._set_value("MODE", INTESISBOX_MODE_MAP[mode])
 
     async def _request_values(self) -> dict:
         """Get all entity values."""
@@ -175,35 +176,35 @@ class IntesisBox(IntesisBase):
         """Authenticate using username and password."""
         raise NotImplementedError()
 
-    async def _set_value(self, device_id, uid, value):
+    async def _set_value(self, uid, value):
         """Internal method to send a command to the API"""
         command = f"SET,1:{uid},{value}\r"
         await self._send_command(command)
 
-    async def set_power_off(self, device_id=None):
+    async def set_power_off(self):
         """Public method to turn off the device asynchronously."""
-        await self._set_value(device_id, INTESISBOX_CMD_ONOFF, "OFF")
+        await self._set_value(INTESISBOX_CMD_ONOFF, "OFF")
 
-    async def set_power_on(self, device_id=None):
+    async def set_power_on(self):
         """Public method to turn on the device asynchronously."""
-        await self._set_value(device_id, INTESISBOX_CMD_ONOFF, "ON")
+        await self._set_value(INTESISBOX_CMD_ONOFF, "ON")
 
-    async def set_temperature(self, device_id, setpoint):
+    async def set_temperature(self, setpoint):
         """Public method for setting the temperature"""
         set_temp = uint32(setpoint * 10)
-        await self._set_value(device_id, INTESISBOX_CMD_SETPOINT, set_temp)
+        await self._set_value(INTESISBOX_CMD_SETPOINT, set_temp)
 
-    async def set_fan_speed(self, device_id, fan: str):
+    async def set_fan_speed(self, fan: str):
         """Public method to set the fan speed"""
-        await self._set_value(device_id, INTESISBOX_CMD_FANSP, fan)
+        await self._set_value(INTESISBOX_CMD_FANSP, fan)
 
-    async def set_vertical_vane(self, device_id, vane: str):
+    async def set_vertical_vane(self, vane: str):
         """Public method to set the vertical vane"""
-        await self._set_value(device_id, INTESISBOX_CMD_VANEUD, vane)
+        await self._set_value(INTESISBOX_CMD_VANEUD, vane)
 
-    async def set_horizontal_vane(self, device_id, vane: str):
+    async def set_horizontal_vane(self, vane: str):
         """Public method to set the horizontal vane"""
-        await self._set_value(device_id, INTESISBOX_CMD_VANELR, vane)
+        await self._set_value(INTESISBOX_CMD_VANELR, vane)
 
     async def poll_status(self, sendcallback=False):
         if self._connected:
