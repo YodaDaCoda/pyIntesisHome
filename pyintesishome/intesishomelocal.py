@@ -26,6 +26,11 @@ _LOGGER = logging.getLogger("pyintesishome")
 class IntesisHomeLocal(IntesisBase):
     """pyintesishome local class."""
 
+    # TODO: refactor this class significantly.
+    # * we're removing compatibility with the old multi-device design and the other types of devices (e.g. pyintesisbox)
+    # * consolidate the instance attributes into two types - long-lived storage-backed configuration, and short-lived state information
+    # * username/password should be passed via an Authentication object
+
     def __init__(self, host, username, password, loop=None, websession=None) -> None:
         """Constructor"""
         device_type = DEVICE_INTESISHOME_LOCAL
